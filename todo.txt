@@ -1,0 +1,8 @@
+pixi.js vs three.js (vs matter.js?)
+look at https://github.com/adityathebe/evolutionSimulator for example
+
+ppo learn from 
+https://github.com/joschu/modular_rl/blob/master/modular_rl/ppo.py
+https://github.com/takuseno/ppo
+
+bootstrap template?
