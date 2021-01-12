@@ -1,30 +1,21 @@
-const SPEED_LIMIT = 10;
-
 class Car {
-  constructor(texture) {
+  constructor(texture, config) {
+    this.topSpeed = config.topSpeed;
     this.acc = 0;
     this.vel = 0;
     this.sprite = new PIXI.Sprite(texture);
-    this.sprite.x = 170;
-    this.sprite.y = 170;
     this.sprite.anchor.x = 0.5;
     this.sprite.anchor.y = 0.5;
     this.sprite.rotation = 0;
-    this.sprite.scale.set(0.01);
-    // this.rectangle = new PIXI.Graphics();
-    // this.rectangle.lineStyle(4, 0xff3300, 1);
-    // this.rectangle.beginFill(0x66ccff);
-    // this.rectangle.drawRect(0, 0, 36, 32);
-    // this.rectangle.endFill();
-    // this.rectangle.position.x = 170;
-    // this.rectangle.position.y = 170;
-    // this.rectangle.pivot.x = 18;
-    // this.rectangle.pivot.y = 16;
-    // this.rectangle.rotation = 0;
+
+    this.sprite.scale.set(0.02);
+  }
+  moveTo(x, y) {
+    this.sprite.position.set(x, y);
   }
   update() {
     this.vel += this.acc;
-    this.vel = this.clamp(this.vel, -SPEED_LIMIT, SPEED_LIMIT);
+    this.vel = this.clamp(this.vel, -this.topSpeed, this.topSpeed);
     this.sprite.x += this.vel * Math.cos(this.sprite.rotation);
     this.sprite.y += this.vel * Math.sin(this.sprite.rotation);
     this.vel *= 0.95;
@@ -42,4 +33,5 @@ class Car {
   decelerate(value) {
     this.acc = -value;
   }
+  collidesWith(lineX1, lineY1, lineX2, lineY2) {}
 }

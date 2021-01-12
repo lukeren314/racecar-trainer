@@ -3,6 +3,7 @@
 // app.renderer.view.style.display = "block";
 // app.renderer.autoResize = true;
 // app.renderer.resize(window.innerWidth, window.innerHeight);
+const SPEED_LIMIT = 10;
 
 var car;
 var app;
@@ -14,44 +15,48 @@ let rightKey = keyboard("d");
 
 function preload() {
   PIXI.loader
-    .add("carImage", "car.png")
+    .add("carImage", "images/car.png")
     .on("progress", loadProgressHandler)
     .load(setup);
 }
 
 function loadProgressHandler(loader, resource) {
-  //Display the file `url` currently being loaded
   console.log("loading: " + resource.url);
 
-  //Display the percentage of files currently loaded
   console.log("progress: " + loader.progress + "%");
 
-  //If you gave your files names as the first argument
-  //of the `add` method, you can access them like this
-  //console.log("loading: " + resource.name);
+  // console.log("loading: " + resource.name);
 }
 
 function setup() {
-  car = new Car(PIXI.loader.resources.carImage.texture);
+  let carConfig = {
+    topSpeed: SPEED_LIMIT,
+  };
+  car = new Car(PIXI.loader.resources.carImage.texture, carConfig);
   app = new PIXI.Application({
-    width: 800,
-    height: 600,
-    transparent: false,
+    width: 1600,
+    height: 900,
+    backgroundColor: 0x1099bb,
+    resolution: window.devicePixelRatio || 1,
   });
-  document.body.appendChild(app.view);
+  document.getElementById("main").appendChild(app.view);
 
   app.stage.addChild(car.sprite);
-
-  window.requestAnimationFrame(loop);
+  app.ticker.add(update);
+  start();
 }
 
-function update(elapsed) {
+function start() {
+  car.moveTo(170, 170);
+}
+
+function update(delta) {
   car.update();
   if (upKey.isDown) {
-    car.accelerate(1);
+    car.accelerate(0.5);
   }
   if (downKey.isDown) {
-    car.decelerate(1);
+    car.decelerate(0.5);
   }
   if (leftKey.isDown) {
     car.turn(-0.1);
@@ -59,19 +64,6 @@ function update(elapsed) {
   if (rightKey.isDown) {
     car.turn(0.1);
   }
-}
-
-function draw() {}
-
-var lastRender = 0;
-function loop(timestamp) {
-  var progress = timestamp - lastRender;
-
-  update(progress);
-  draw();
-
-  lastRender = timestamp;
-  window.requestAnimationFrame(loop);
 }
 
 window.onload = () => {
