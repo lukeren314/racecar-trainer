@@ -5,8 +5,9 @@
 // app.renderer.resize(window.innerWidth, window.innerHeight);
 const SPEED_LIMIT = 10;
 
-var car;
 var app;
+var map;
+var car;
 
 let upKey = keyboard("w");
 let downKey = keyboard("s");
@@ -16,38 +17,28 @@ let rightKey = keyboard("d");
 function preload() {
   PIXI.loader
     .add("carImage", "images/car.png")
+    .add("map0", "maps/map.json")
     .on("progress", loadProgressHandler)
     .load(setup);
-}
-
-function loadProgressHandler(loader, resource) {
-  console.log("loading: " + resource.url);
-
-  console.log("progress: " + loader.progress + "%");
-
-  // console.log("loading: " + resource.name);
 }
 
 function setup() {
   let carConfig = {
     topSpeed: SPEED_LIMIT,
+    driftMode: "drift",
   };
   car = new Car(PIXI.loader.resources.carImage.texture, carConfig);
+  map = new MapManager(PIXI.loader.resources.map0.data);
   app = new PIXI.Application({
-    width: 1600,
-    height: 900,
+    width: 1280,
+    height: 720,
     backgroundColor: 0x1099bb,
-    resolution: window.devicePixelRatio || 1,
   });
   document.getElementById("main").appendChild(app.view);
-
-  app.stage.addChild(car.sprite);
+  car.render(app);
+  map.render(app);
   app.ticker.add(update);
   start();
-}
-
-function start() {
-  car.moveTo(170, 170);
 }
 
 function update(delta) {
@@ -59,13 +50,28 @@ function update(delta) {
     car.decelerate(0.5);
   }
   if (leftKey.isDown) {
-    car.turn(-0.1);
+    car.turn(-1);
   }
   if (rightKey.isDown) {
-    car.turn(0.1);
+    car.turn(1);
+  }
+  if (car.collidesWithLines(map.lines)) {
+    // start();
   }
 }
 
 window.onload = () => {
   preload();
 };
+
+function loadProgressHandler(loader, resource) {
+  console.log("loading: " + resource.url);
+  console.log("progress: " + loader.progress + "%");
+
+  // console.log("loading: " + resource.name);
+}
+
+function start() {
+  car.moveTo(170, 170);
+  car.reset();
+}
