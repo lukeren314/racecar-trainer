@@ -1,13 +1,6 @@
-class Model {
-  constructor() {}
+function getIndicesOfTensor(tensor, indices) {
+
 }
-
-class Agent {}
-
-class Actor {}
-
-class Critic {}
-
 class PPOMemory {
   constructor(batchSize) {
     this.states = [];
@@ -20,7 +13,7 @@ class PPOMemory {
   }
   generateBatches() {
     let nStates = this.states.length;
-    let batchStart = tf.range(0, nStates, this.batchSize);
+    let batchStart = tf.range(0, nStates, this.batchSize).dataSync();
     let indices = tf.range(0, nStates, 1, "int32");
     tf.util.shuffle(indices);
     let batches = [];
@@ -28,12 +21,12 @@ class PPOMemory {
       batches.push(indices.slice(i, this.batchSize));
     }
     return [
-      tf.tensor(this.states),
-      tf.tensor(this.actions),
-      tf.tensor(this.probs),
-      tf.tensor(this.vals),
-      tf.tensor(this.rewards),
-      tf.tensor(this.dones),
+      this.states,
+      this.actions,
+      this.probs,
+      this.vals,
+      this.rewards,
+      this.dones,
       batches,
     ];
   }
@@ -65,27 +58,30 @@ class ActorNetwork {
     chkptDir = "tmp/ppo"
   ) {
     this.checkpointFile = chkptDir + "/actor_torch_ppo";
-    this.actor = tf.sequential({
+    this.model = tf.sequential({
       layers: [
         tf.layers.dense({
           units: fc1Dims,
-          batchInputShape: inputDims,
+          inputShape: inputDims,
         }),
         tf.layers.reLU(),
-        tf.layers.dense(fc2Dims),
+        tf.layers.dense({ units: fc2Dims }),
         tf.layers.reLU(),
-        tf.layers.dense(nActions),
+        tf.layers.dense({ units: nActions }),
         tf.layers.softmax(),
       ],
     });
     this.optimizer = tf.train.adam(alpha);
   }
   forward(state) {
-    dist = this.actor(state);
+    let dist = this.model.predict(state);
+    let sum = tf.sum(dist);
+    dist = dist.div(sum)
+
     return dist;
   }
-  saveCheckpoint() {}
-  loadCheckpoint() {}
+  saveCheckpoint() { }
+  loadCheckpoint() { }
 }
 
 class CriticNetwork {
@@ -94,47 +90,53 @@ class CriticNetwork {
     alpha,
     fc1Dims = 256,
     fc2Dims = 256,
-    chkpt_dir = "tmp/ppo"
+    chkptDir = "tmp/ppo"
   ) {
     this.checkpointFile = chkptDir + "/critic_torch_ppo";
-    this.critic = tf.sequential({
+    this.model = tf.sequential({
       layers: [
-        tf.layers.dense(),
+        tf.layers.dense({
+          units: fc1Dims,
+          inputShape: inputDims,
+        }),
         tf.layers.reLU(),
-        tf.layers.dense(fc2Dims),
+        tf.layers.dense({ units: fc2Dims }),
         tf.layers.reLU(),
-        tf.layers.dense(1),
+        tf.layers.dense({ units: 1 }),
       ],
     });
-    this.optimizer = tf.optimizer.adam(alpha);
+    this.optimizer = tf.train.adam(alpha);
   }
   forward(state) {
-    value = self.critic(state);
+    let value = this.model.predict(state);
     return value;
   }
-  saveCheckpoint() {}
-  loadCheckpoint() {}
+  saveCheckpoint() { }
+  loadCheckpoint() { }
 }
 
 class Agent {
   constructor(
     nActions,
     inputDims,
-    gamma = 0.99,
+    batchSize = 64,
     alpha = 0.0003,
+    nEpochs = 10,
+    gamma = 0.99,
     gaeLambda = 0.95,
     policyClip = 0.2,
-    batchSize = 64,
-    nEpochs = 10
+    c1 = 0.5,
   ) {
     this.gamma = gamma;
     this.policyClip = policyClip;
     this.nEpochs = nEpochs;
     this.gaeLambda = gaeLambda;
+    this.c1 = c1;
 
-    this.actor = ActorNetwork(nActions, inputDims, alpha);
-    this.critic = CriticNetwork(inputDims, alpha);
-    this.memory = PPOMemory(batchSize);
+    this.actor = new ActorNetwork(nActions, inputDims, alpha);
+    this.critic = new CriticNetwork(inputDims, alpha);
+    this.memory = new PPOMemory(batchSize);
+    this.optimizer = tf.train.adam(alpha);
   }
   remember(state, action, probs, vals, reward, done) {
     this.memory.storeMemory(state, action, probs, vals, reward, done);
@@ -148,10 +150,65 @@ class Agent {
     this.critic.loadCheckpoint();
   }
   chooseAction(observation) {
-    state = tf.tensor(observation, undefined, "float32");
-    dist = this.actor.forward(state);
-    value = this.critic.forward(state);
-    action = tf.multinomial(dist, 1);
-    probs = 
+    let state = tf.tensor([observation], undefined, "float32");
+    let dist = this.actor.forward(state);
+    let value = this.critic.forward(state);
+
+    let action = tf.multinomial(dist, 1).dataSync()[0];
+    let probs = tf.log(dist).dataSync()[action];
+    value = value.dataSync()[0];
+
+    return [action, probs, value];
+  }
+  learn() {
+    for (let i = 0; i < this.nEpochs; ++i) {
+      const f = () => {
+        let stateArr, actionArr, oldProbArr, valsArr, rewardArr, donesArr, batches;
+        [stateArr, actionArr, oldProbArr, valsArr, rewardArr, donesArr, batches] = this.memory.generateBatches();
+        let advantage = new Array(rewardArr.length).fill(0);
+        for (let t = 0; t < rewardArr.length - 2; ++t) {
+          discount = 1
+          aT = 0
+          for (let k = t; k < rewardArr.length - 2; ++k) {
+            aT += discount * (rewardArr[k] + this.gamma * valsArr[k + 1] * (1 - donesArr[k]) - valsArr[k]);
+            discount *= this.gamma * this.gaeLambda;
+          }
+          advantage[t] = aT;
+        }
+        advantage = tf.tensor(advantage);
+        let values = tf.tensor(valsArr);
+        for (let batch of batches) {
+          let states = tf.tensor(stateArr.gather(batch), undefined, "float32");
+          let oldProbs = tf.tensor(oldProbArr.gather(batch), undefined);
+          let actions = tf.tensor(actionArr.gather(batch));
+
+          let dist = this.actor.forward(states);
+          let criticValue = this.critic.forward(states);
+          criticValue = tf.squeeze(criticValue);
+          let newProbs = dist.gather(actions).log();
+          let probRatio = newProbs.sub(oldProbs).exp();
+          let weightedProbs = advantage.gather(batch).mul(probRatio);
+          let weightedClippedProbs = probRatio.clipByValue(1 - this.policyClip, 1 + this.policyClip).mul(advantage[batch]);
+          let actorLoss = tf.min(weightedProbs, weightedClippedProbs).mul(-1).mean();
+          let returns = advantage.gather(batch) + values.gather(batch);
+          let criticLoss = returns.sub(criticValue).pow(2);
+          criticLoss = criticLoss.mean();
+          let totalLoss = actorLoss.add(criticLoss.mult(this.c1));
+          return totalLoss;
+          // reset optimizer gradients to zero
+          // apply gradients
+          // step optimizers forward
+        }
+      }
+
+      // train per network
+
+
+      // train on all variables
+      const {value, grads} = tf.variableGrads(f);
+      this.optimizer.applyGradients(grads);
+      // this.critic.optimizer.applyGradients(grads);
+    }
+    this.memory.clearMemory();
   }
 }

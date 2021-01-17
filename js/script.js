@@ -5,6 +5,11 @@
 // app.renderer.resize(window.innerWidth, window.innerHeight);
 const SPEED_LIMIT = 10;
 
+const BATCH_SIZE = 5;
+const ALPHA = 0.0003;
+const N_EPOCHS = 4;
+const INPUT_DIMS = [5,];
+
 var app;
 var map;
 var car;
@@ -21,6 +26,7 @@ function preload() {
     .on("progress", loadProgressHandler)
     .load(setup);
 }
+var agent, action, prob, val;
 
 function setup() {
   let carConfig = {
@@ -38,10 +44,18 @@ function setup() {
   car.render(app);
   map.render(app);
   app.ticker.add(update);
+
+  
+  agent = new Agent(4, INPUT_DIMS, BATCH_SIZE, ALPHA, N_EPOCHS);
+  observation = [0, 1, 2, 4, 5];
+  [action, prob, val] = agent.chooseAction(observation);
+  console.log(action, prob, val);
   start();
 }
 
+
 function update(delta) {
+  
   car.update();
   if (upKey.isDown) {
     car.accelerate(0.5);
@@ -74,4 +88,5 @@ function loadProgressHandler(loader, resource) {
 function start() {
   car.moveTo(170, 170);
   car.reset();
+  
 }
