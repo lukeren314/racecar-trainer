@@ -5,7 +5,7 @@ const ALPHA = 0.0005;
 const N_EPOCHS = 5;
 const OUTPUT_SIZE = 9;
 const UPDATE_RATE = 1;
-const NUM_VISION_POINTS = 7;
+const NUM_VISION_POINTS = 15;
 const INPUT_DIMS = [NUM_VISION_POINTS + 5];
 const LEARN_STEP_RATE = 20;
 const IDLE_TIME_MAX = 3000;
@@ -27,7 +27,6 @@ function preload() {
   PIXI.loader
     .add("carImage", "images/car.png")
     .add("map0", "maps/map1.json")
-    .on("progress", loadProgressHandler)
     .load(setup);
 }
 
@@ -79,12 +78,8 @@ function setup() {
   setupUI();
   setupController();
   reset();
+  showContent();
   app.ticker.add(update);
-}
-
-function fullReset() {
-  reset();
-  agent.memory.clearMemory();
 }
 
 function reset() {
@@ -92,6 +87,11 @@ function reset() {
   observation = env.getObservation();
   done = false;
   score = 0;
+}
+
+function fullReset() {
+  reset();
+  agent.memory.clearMemory();
 }
 
 var rewardReports = [];
@@ -168,9 +168,14 @@ window.onload = () => {
   preload();
 };
 
-function loadProgressHandler(loader, resource) {
-  console.log("loading: " + resource.url);
-  console.log("progress: " + loader.progress + "%");
+async function save() {
+  let modelSave = await agent.saveModels();
+  let chartSave = performanceChart.save();
+  return modelSave && chartSave;
+}
 
-  // console.log("loading: " + resource.name);
+async function load() {
+  let modelLoad = agent.loadModels();
+  let chartLoad = performanceChart.load();
+  return modelLoad && chartLoad;
 }

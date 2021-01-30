@@ -3,7 +3,7 @@ class MapData {
     this.lines = mapData.lines;
     this.rewardLines = mapData.rewardLines;
     this.spawnPoint = {
-      x: 170,
+      x: 150,
       y: 300,
     };
     this.lineGs = this.createLineGs();

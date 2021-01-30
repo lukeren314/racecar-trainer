@@ -14,6 +14,20 @@ function setupController() {
   performanceChart = new PerformanceChart(performanceChartContext);
 }
 
+function showContent() {
+  document.getElementById("loader").style.display = "none";
+  document.getElementById("main").style.display = "block";
+  document.getElementById("stats").style.display = "block";
+}
+
+function tutorialOn() {
+  document.getElementById("tutorial-overlay").style.display = "block";
+}
+
+function tutorialOff() {
+  document.getElementById("tutorial-overlay").style.display = "none";
+}
+
 function onSpeedSliderChanged() {
   updateRate = getSpeedSliderValue() * 0.02;
   setSpeedSliderLabel(updateRate.toFixed(2) + "x");
@@ -39,7 +53,7 @@ function onPauseButtonClicked() {
 }
 
 async function onSaveModelButtonClicked() {
-  let saveSuccess = await agent.saveModels();
+  let saveSuccess = await save();
   setSaveModelButton(saveSuccess ? "Save Success!" : "Save Failed");
   setTimeout(() => {
     setSaveModelButton("Save Model");
@@ -47,8 +61,8 @@ async function onSaveModelButtonClicked() {
 }
 
 async function onLoadModelButtonClicked() {
-  const loadSuccess = await agent.loadModels();
-  reset();
+  const loadSuccess = await load();
+  fullReset();
   setLoadModelButton(saveSuccess ? "Load Success!" : "Load Failed");
   setTimeout(() => {
     setLoadModelButton("Load Model");

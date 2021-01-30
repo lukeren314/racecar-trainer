@@ -69,7 +69,7 @@ class PerformanceChart {
   }
   addData(prevScore, bestScore, averageScore, timeStamp) {
     this.config.data.labels.push(timeStamp);
-    for (let i = 0; i < 3; ++i) {
+    for (let i = 0; i < this.config.data.datasets.length; ++i) {
       let score;
       switch (i) {
         case 0:
@@ -95,5 +95,38 @@ class PerformanceChart {
     }
     this.chart.update();
   }
-  loadData(values) {}
+  save() {
+    window.localStorage.setItem(
+      "raceCarTrainerPerformanceChartLabels",
+      JSON.stringify(this.config.data.labels)
+    );
+    for (let i = 0; i < this.config.data.datasets.length; ++i) {
+      window.localStorage.setItem(
+        `raceCarTrainerPerformanceChartDataset${i}`,
+        JSON.stringify(this.config.data.datasets[i].data)
+      );
+    }
+    return true;
+  }
+  load() {
+    const labels = localStorage.getItem("raceCarTrainerPerformanceChartLabels");
+    if (labels == null) {
+      return false;
+    }
+    const datasetsData = [];
+    for (let i = 0; i < this.config.data.datasets.length; ++i) {
+      const data = window.localStorage.getItem(
+        `raceCarTrainerPerformanceChartDataset${i}`
+      );
+      if (data == null) {
+        return false;
+      }
+      datasetsData.push(data);
+    }
+    this.config.data.labels = labels;
+    for (let i = 0; i < 3; ++i) {
+      this.config.data.datasets[i].data = data;
+    }
+    return true;
+  }
 }
