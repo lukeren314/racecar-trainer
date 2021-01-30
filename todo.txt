@@ -1,6 +1,1 @@
-chart.js
-refactors?
-manual mode switch
-drive mode change?
-new map?
 explanation/tutorial?

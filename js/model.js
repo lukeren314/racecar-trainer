@@ -82,6 +82,11 @@ function setup() {
   app.ticker.add(update);
 }
 
+function fullReset() {
+  reset();
+  agent.memory.clearMemory();
+}
+
 function reset() {
   env.reset();
   observation = env.getObservation();

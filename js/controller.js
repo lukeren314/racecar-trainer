@@ -57,5 +57,6 @@ async function onLoadModelButtonClicked() {
 
 function onTrainTestButtonClicked() {
   training = !training;
+  fullReset();
   setTrainTestButton(training ? "Test!" : "Train!");
 }
