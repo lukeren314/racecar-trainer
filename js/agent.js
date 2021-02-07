@@ -27,7 +27,9 @@ class PPOMemory {
       tf.util.shuffle(indices);
       let batches = [];
       for (let i of batchStart) {
-        batches.push(indices.slice(i, this.batchSize));
+        if (i+this.batchSize <= nStates){
+          batches.push(indices.slice(i, this.batchSize));
+        }
       }
       return batches;
     });
@@ -107,7 +109,6 @@ class CriticNetwork {
       this.model.add(tf.layers.reLU());
     }
     this.model.add(tf.layers.dense({ units: 1 }));
-    this.model.add(tf.layers.softmax());
   }
   forward(state) {
     return tf.tidy(() => this.model.predict(state));
@@ -212,13 +213,12 @@ class Agent {
               let batchAdvantage = advantage.gather(batch);
               let dist = this.actor.forward(states);
               let criticValue = this.critic.forward(states);
-
               criticValue = criticValue.squeeze();
-              let buffer = tf.buffer([this.batchSize]);
+              let buffer = new Array(this.batchSize);
               for (let m = 0; m < this.batchSize; ++m) {
-                buffer.set(dist.gather(m).gather(actions.gather(m)), m);
+                buffer[m] = dist.gather(m).gather(actions.gather(m));
               }
-              let newProbs = buffer.toTensor().log();
+              let newProbs = tf.stack(buffer).log();
               let probRatio = newProbs.sub(oldProbs).exp();
 
               let weightedProbs = batchAdvantage.mul(probRatio);
@@ -227,16 +227,13 @@ class Agent {
                 .mul(batchAdvantage);
               let actorLoss = tf
                 .minimum(weightedProbs, weightedClippedProbs)
-                .mul(-1)
-                .mean();
-
+                .mean()
+                .mul(-1);
               let returns = batchAdvantage.add(values);
-              let criticLoss = returns.sub(criticValue).pow(2);
-              criticLoss = criticLoss.mean();
+              let criticLoss = returns.sub(criticValue).pow(2).mean();
               let totalLoss = actorLoss.add(criticLoss.mul(this.c1)).mean();
               return totalLoss;
             });
-
           const batchGradients = this.optimizer.computeGradients(f).grads;
           this.optimizer.applyGradients(batchGradients);
         }

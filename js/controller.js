@@ -9,6 +9,7 @@ function setupController() {
   saveModelButton.onclick = onSaveModelButtonClicked;
   loadModelButton.onclick = onLoadModelButtonClicked;
   trainTestButton.onclick = onTrainTestButtonClicked;
+  batchGenerationButton.onclick = onBatchGenerationButtonClicked;
 
   // chart js
   performanceChart = new PerformanceChart(performanceChartContext);
@@ -29,7 +30,7 @@ function tutorialOff() {
 }
 
 function onSpeedSliderChanged() {
-  updateRate = getSpeedSliderValue() * 0.02;
+  updateRate = getSpeedSliderValue() * 0.05;
   setSpeedSliderLabel(updateRate.toFixed(2) + "x");
 }
 
@@ -73,4 +74,9 @@ function onTrainTestButtonClicked() {
   training = !training;
   fullReset();
   setTrainTestButton(training ? "Test!" : "Train!");
+}
+
+function onBatchGenerationButtonClicked(){
+  trainOnBatch = !trainOnBatch;
+  setBatchGenerationButton(trainOnBatch ? "Train on Generation" : "Train on Batch");
 }

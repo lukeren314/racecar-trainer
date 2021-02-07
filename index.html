@@ -1,212 +1,159 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <meta name="description" content="Train a car to drive" />
-    <meta name="author" content="Luke Ren" />
-    <link href="css/style.css" rel="stylesheet" />
-    <link href="lib/bootstrap.min.css" rel="stylesheet" />
-    <title>Racecar Trainer</title>
-  </head>
-  <body>
-    <div id="loader"></div>
-    <div id="tutorial-overlay">
-      <div id="tutorial-menu">
-        <button
-          type="button"
-          class="btn btn-danger"
-          id="tutorial-close-button"
-          onclick="tutorialOff();"
-        >
-          Close
-        </button>
-        <div id="tutorial-text">
-          <h1>Welcome!</h1>
-          <p>
-            This project uses the PPO (Proximal Policy Optimization) algorithm
-            to teach a car how to drive.
-          </p>
-          <p>
-            Press the Start button to begin training. Use the Save and Load
-            buttons to save/load your model.
-          </p>
-          <p>
-            The car may look jittery while it's learning. Click the Test button
-            when you're ready to see your car drive smoothly!.
-          </p>
-          <p>
-            Change the speed of the simulation using the speed slider. This may
-            make the simulation even more jittery!
-          </p>
-          <p>Don't forget to save before exiting!</p>
-          <p>
-            See the source code for this project at
-            <a
-              href="https://github.com/lukeren314/racecar-trainer"
-              target="_blank"
-              >https://github.com/lukeren314/racecar-trainer</a
-            >
-          </p>
-        </div>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="description" content="Train a car to drive" />
+  <meta name="author" content="Luke Ren" />
+  <link href="css/style.css" rel="stylesheet" />
+  <link href="lib/bootstrap.min.css" rel="stylesheet" />
+  <title>Racecar Trainer</title>
+</head>
+
+<body>
+  <div id="loader"></div>
+  <div id="tutorial-overlay">
+    <div id="tutorial-menu">
+      <button type="button" class="btn btn-danger" id="tutorial-close-button" onclick="tutorialOff();">
+        Close
+      </button>
+      <div id="tutorial-text">
+        <h1>Welcome!</h1>
+        <p>
+          This project uses the PPO (Proximal Policy Optimization) algorithm
+          to teach a car how to drive.
+        </p>
+        <p>
+          Press the Start button to begin training. Use the Save and Load
+          buttons to save/load your model.
+        </p>
+        <p>
+          The car may look jittery while it's learning. Click the Test button
+          when you're ready to see your car drive smoothly!
+        </p>
+        <p>
+          You can have the car learn every time it crashes instead of every couple of frames by clicking on the Train on Generation button.
+          This will reduce jitter but will increase the time between generations.
+        </p>
+        <p>
+          Change the speed of the simulation using the speed slider. This may
+          make the simulation even more jittery!
+        </p>
+        <p>Don't forget to save before exiting!</p>
+        <p>
+          See the source code for this project at
+          <a href="https://github.com/lukeren314/racecar-trainer"
+            target="_blank">https://github.com/lukeren314/racecar-trainer</a>
+        </p>
       </div>
     </div>
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
-      <a class="navbar-brand" href="#">RaceCar Trainer</a>
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-toggle="collapse"
-        data-target="#navbarCollapse"
-        aria-controls="navbarCollapse"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span class="navbar-toggler-icon"></span>
+  </div>
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+    <a class="navbar-brand" href="#">RaceCar Trainer</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+      aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <span class="nav-link">
+            <button type="button" class="btn btn-success" id="pause-button">
+              Start
+            </button>
+          </span>
+        </li>
+        <li class="nav-item"></li>
+        <li class="nav-item">
+          <span class="nav-link">
+            <button type="button" class="btn btn-primary" id="save-model-button">
+              Save Model
+            </button>
+          </span>
+        </li>
+        <li class="nav-item">
+          <span class="nav-link">
+            <button type="button" class="btn btn-primary" id="load-model-button">
+              Load Model
+            </button>
+          </span>
+        </li>
+        <li class="nav-item">
+          <span class="nav-link">
+            <button type="button" class="btn btn-secondary" id="show-vision-points-button">
+              Show Vision Points
+            </button>
+          </span>
+        </li>
+        <li class="nav-item">
+          <span class="nav-link">
+            <button type="button" class="btn btn-secondary" id="show-reward-lines-button">
+              Show Reward Lines
+            </button>
+          </span>
+        </li>
+        <li class="nav-item">
+          <span class="nav-link">
+            <button type="button" class="btn btn-warning" id="train-test-button">
+              Test!
+            </button>
+          </span>
+        </li>
+        <li class="nav-item">
+          <span class="nav-link">
+            <button type="button" class="btn btn-warning" id="batch-generation-button">
+              Train on Generation
+            </button>
+          </span>
+        </li>
+        <li class="nav-item">
+          <span class="nav-link">
+            <div class="slide-container">
+              Speed
+              <input id="speed-slider" type="range" min="1" max="100" value="20" />
+              <span id="speed-slider-label">1x</span>
+            </div>
+          </span>
+        </li>
+      </ul>
+      <button type="button" class="btn btn-primary" id="help-button" onclick="tutorialOn()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-question-circle"
+          viewBox="0 0 16 16" id="help-icon">
+          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+          <path
+            d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z" />
+        </svg>
+        Help
       </button>
-      <div class="collapse navbar-collapse" id="navbarCollapse">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item">
-            <span class="nav-link">
-              <button type="button" class="btn btn-success" id="pause-button">
-                Start
-              </button>
-            </span>
-          </li>
-          <li class="nav-item"></li>
-          <li class="nav-item">
-            <span class="nav-link">
-              <button
-                type="button"
-                class="btn btn-primary"
-                id="save-model-button"
-              >
-                Save Model
-              </button>
-            </span>
-          </li>
-          <li class="nav-item">
-            <span class="nav-link">
-              <button
-                type="button"
-                class="btn btn-primary"
-                id="load-model-button"
-              >
-                Load Model
-              </button>
-            </span>
-          </li>
-          <li class="nav-item">
-            <span class="nav-link">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                id="show-vision-points-button"
-              >
-                Show Vision Points
-              </button>
-            </span>
-          </li>
-          <li class="nav-item">
-            <span class="nav-link">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                id="show-reward-lines-button"
-              >
-                Show Reward Lines
-              </button>
-            </span>
-          </li>
-          <li class="nav-item">
-            <span class="nav-link">
-              <button
-                type="button"
-                class="btn btn-warning"
-                id="train-test-button"
-              >
-                Test!
-              </button>
-            </span>
-          </li>
-          <li class="nav-item">
-            <span class="nav-link">
-              <div class="slide-container">
-                Speed
-                <input
-                  id="speed-slider"
-                  type="range"
-                  min="1"
-                  max="100"
-                  value="50"
-                />
-                <span id="speed-slider-label">1x</span>
-              </div>
-            </span>
-          </li>
-        </ul>
-        <button
-          type="button"
-          class="btn btn-primary"
-          id="help-button"
-          onclick="tutorialOn()"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            fill="currentColor"
-            class="bi bi-question-circle"
-            viewBox="0 0 16 16"
-            id="help-icon"
-          >
-            <path
-              d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"
-            />
-            <path
-              d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"
-            />
-          </svg>
-          Help
-        </button>
-      </div>
-    </nav>
-    <main
-      style="display: none"
-      role="main"
-      class="container animate-bottom"
-      id="main"
-    >
-      <!-- <h1>Navbar example</h1>
+    </div>
+  </nav>
+  <main style="display: none" role="main" class="container animate-bottom" id="main">
+    <!-- <h1>Navbar example</h1>
               <p class="lead">This example is a quick exercise to illustrate how the top-aligned navbar works. As you scroll, this navbar remains in its original position and moves with the rest of the page.</p>
               <a class="btn btn-lg btn-primary" href="../../components/navbar/" role="button">View navbar docs &raquo;</a> -->
-    </main>
-    <div id="stats" style="display: none" class="animate-bottom">
-      <canvas id="performance-chart" width="1280" height="720"></canvas>
-    </div>
-  </body>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
-  <script
-    src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-    crossorigin="anonymous"
-  ></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+  </main>
+  <div id="stats" style="display: none" class="animate-bottom">
+    <canvas id="performance-chart" width="1280" height="720"></canvas>
+  </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+  integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
 
-  <script src="lib/pixi.min.js"></script>
-  <script src="lib/bootstrap.min.js"></script>
-  <script src="js/agent.js"></script>
-  <script src="js/keyboard.js"></script>
-  <script src="js/calculation.js"></script>
-  <script src="js/mapData.js"></script>
-  <script src="js/Car.js"></script>
-  <script src="js/rewards.js"></script>
-  <script src="js/environment.js"></script>
-  <script src="js/performanceChart.js"></script>
-  <script src="js/view.js"></script>
-  <script src="js/controller.js"></script>
-  <script src="js/model.js"></script>
+<script src="lib/pixi.min.js"></script>
+<script src="lib/bootstrap.min.js"></script>
+<script src="js/agent.js"></script>
+<script src="js/keyboard.js"></script>
+<script src="js/calculation.js"></script>
+<script src="js/mapData.js"></script>
+<script src="js/Car.js"></script>
+<script src="js/rewards.js"></script>
+<script src="js/environment.js"></script>
+<script src="js/performanceChart.js"></script>
+<script src="js/view.js"></script>
+<script src="js/controller.js"></script>
+<script src="js/model.js"></script>
+
 </html>

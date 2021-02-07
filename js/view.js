@@ -6,7 +6,7 @@ var showRewardLinesButton;
 var saveModelButton;
 var loadModelButton;
 var trainTestButton;
-
+var batchGenerationButton;
 // chart js
 var performanceChartContext;
 function setupUI() {
@@ -18,6 +18,7 @@ function setupUI() {
   saveModelButton = document.getElementById("save-model-button");
   loadModelButton = document.getElementById("load-model-button");
   trainTestButton = document.getElementById("train-test-button");
+  batchGenerationButton = document.getElementById("batch-generation-button");
 
   performanceChartContext = document
     .getElementById("performance-chart")
@@ -54,4 +55,8 @@ function setLoadModelButton(value) {
 
 function setTrainTestButton(value) {
   trainTestButton.innerText = value;
+}
+
+function setBatchGenerationButton(value) {
+  batchGenerationButton.innerText = value;
 }

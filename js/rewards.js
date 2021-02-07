@@ -13,6 +13,7 @@ class Rewards {
   }
   reset() {
     this.rewardLineIndex = 0;
+    this.resetReport();
   }
   setShowRewardLines(value) {
     for (let rl of this.rewardLineGs) {

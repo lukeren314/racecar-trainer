@@ -46,7 +46,7 @@ var generation = 0;
 var manual = false;
 var automatic = true;
 var training = true;
-
+var trainOnBatch = true;
 var updateRate = UPDATE_RATE;
 var paused = true;
 
@@ -131,7 +131,7 @@ function update(delta) {
       ++nSteps;
       score += reward;
       agent.remember(observation, action, prob, val, reward, done);
-      if (nSteps % LEARN_STEP_RATE == 0) {
+      if (trainOnBatch && nSteps % LEARN_STEP_RATE == 0) {
         if (automatic && training) {
           agent.learn();
         } else {
@@ -142,6 +142,14 @@ function update(delta) {
       observation = observation_;
 
       if (env.done) {
+        if (!trainOnBatch) {
+          if (automatic && training) {
+            agent.learn();
+          } else {
+            agent.memory.clearMemory();
+          }
+          ++learnSteps;
+        }
         scoreHistory.push(score);
         let pastScores = scoreHistory.slice(scoreHistory.length - 100);
         avgScore = pastScores.reduce((a, b) => a + b, 0) / pastScores.length;
